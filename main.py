@@ -43,13 +43,15 @@ def display_individual(canvas, individual, generation, fitness_value):
     canvas.delete("all")
     canvas.create_text(10, 10, anchor="nw", text=f"Generation: {generation}", font=("Futura", 14))
     canvas.create_text(10, 40, anchor="nw", text=f"Fitness: {fitness_value}", font=("Futura", 14))
-    square_size = 30
     padding = 5
+    num_chromosomes = len(individual)
     canvas_width = one_max_canvas.winfo_width()
     canvas_height = one_max_canvas.winfo_height()
-    total_width = len(individual) * (square_size + padding) - padding
+    square_size = (canvas_width - padding * (num_chromosomes - 1)) // num_chromosomes
+    square_size = min(square_size, 20)
+    total_width = num_chromosomes * (square_size + padding) - padding
     start_x = (canvas_width - total_width) // 2
-    start_y = (canvas_height - square_size) // 2  # Center vertically
+    start_y = (canvas_height - square_size) // 2
     for index, gene in enumerate(individual):
         color = number_to_color[gene]
         canvas.create_rectangle(
@@ -64,13 +66,15 @@ def display_best_solution(canvas, best_individual, best_fitness, generation):
     canvas.delete("all")
     canvas.create_text(10, 10, anchor="nw", text=f"Best Solution Found in Generation {generation}", font=("Futura", 14))
     canvas.create_text(10, 40, anchor="nw", text=f"Fitness: {best_fitness}", font=("Futura", 14))
-    square_size = 30
     padding = 5
+    num_chromosomes = len(best_individual)
     canvas_width = one_max_canvas.winfo_width()
     canvas_height = one_max_canvas.winfo_height()
-    total_width = len(best_individual) * (square_size + padding) - padding
+    square_size = (canvas_width - padding * (num_chromosomes - 1)) // num_chromosomes
+    square_size = min(square_size, 20)
+    total_width = num_chromosomes * (square_size + padding) - padding
     start_x = (canvas_width - total_width) // 2
-    start_y = (canvas_height - square_size) // 2  # Center vertically
+    start_y = (canvas_height - square_size) // 2
     for index, gene in enumerate(best_individual):
         color = number_to_color[gene]
         canvas.create_rectangle(
@@ -125,8 +129,8 @@ def exit_win(*args):
 # Update the parameters based on user input and rerun the algorithm
 def update_parameters():
     global chromosome_length, generations
-    if not chromosome_length_var.get().isdigit() or not (1 <= int(chromosome_length_var.get()) <= 20):
-        messagebox.showerror("Invalid Input", "Please enter a valid number for chromosome length (1-20).")
+    if not chromosome_length_var.get().isdigit() or not (1 <= int(chromosome_length_var.get()) <= 30):
+        messagebox.showerror("Invalid Input", "Please enter a valid number for chromosome length (1-30).")
         return
     if not generations_var.get().isdigit():
         messagebox.showerror("Invalid Input", "Please enter a valid number for generations.")
@@ -146,7 +150,7 @@ root.geometry("800x600")
 root.resizable(False, False)
 
 # Creation of a frame for visuals parameters
-param_frame = Frame(root, bg="gray")
+param_frame = Frame(root)
 param_frame.place(relx=0.0125, rely=0.0167, relwidth=0.975, relheight=0.475)
 
 # Variable to store the selected color
@@ -164,39 +168,41 @@ def update_selected_color_display():
     selected_color_display.config(bg=color_goal.get())
 
 choosing_square = Label(param_frame, text="Result color:", font=("Futura", 10))
-choosing_square.place(relx=0.0125, rely=0.035)
+choosing_square.place(relx=0.5, rely=0.05, anchor="center")
 
 # Create color squares
 square_size = 30
-padding = 10
+padding = 20
+color_canvases = []
 for index, color in enumerate(colors):
     canvas = Canvas(param_frame, width=square_size, height=square_size, bg=color, highlightthickness=1, highlightbackground="black")
-    canvas.place(x=50 + (square_size + padding) * index + padding, rely=0.15)
+    canvas.place(relx=(0.5 + (index - 2.5) * (square_size + padding) / 800), rely=0.15, anchor="center")
     canvas.bind("<Button-1>", lambda event, c=color: select_color(c))
+    color_canvases.append(canvas)
 
 # Display the currently selected color
 selected_color_display = Canvas(param_frame, width=square_size * 1.25, height=square_size * 1.25, bg=color_goal.get(), highlightthickness=1, highlightbackground="black")
-selected_color_display.place(x=10, rely=0.135)
+selected_color_display.place(relx=0.5, rely=0.3, anchor="center")
 
 # Entry field for chromosome length
 chromosome_length_var = StringVar()
 chromosome_length_var.set("10")  # Default value
-chromosome_length_label = Label(param_frame, text="Chromosome Length (1-20):", font=("Futura", 10))
-chromosome_length_label.place(relx=0.0125, rely=0.35)
+chromosome_length_label = Label(param_frame, text="Chromosome Length (1-30):", font=("Futura", 10))
+chromosome_length_label.place(relx=0.35, rely=0.5, anchor="center")
 chromosome_length_entry = Entry(param_frame, textvariable=chromosome_length_var)
-chromosome_length_entry.place(relx=0.3, rely=0.35)
+chromosome_length_entry.place(relx=0.65, rely=0.5, anchor="center")
 
 # Entry field for number of generations
 generations_var = StringVar()
 generations_var.set("50")  # Default value
 generations_label = Label(param_frame, text="Number of Generations:", font=("Futura", 10))
-generations_label.place(relx=0.0125, rely=0.45)
+generations_label.place(relx=0.35, rely=0.65, anchor="center")
 generations_entry = Entry(param_frame, textvariable=generations_var)
-generations_entry.place(relx=0.3, rely=0.45)
+generations_entry.place(relx=0.65, rely=0.65, anchor="center")
 
 # Button to update the parameters and run the algorithm
 update_button = Button(param_frame, text="Run Algorithm", command=update_parameters)
-update_button.place(relx=0.0125, rely=0.55)
+update_button.place(relx=0.5, rely=0.8, anchor="center")
 
 # Creation of a frame for the visual of the problem
 one_max_frame = Frame(root, bg="gray")
